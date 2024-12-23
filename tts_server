@@ -1,0 +1,32 @@
+import torch
+import torchaudio
+from TTS.api import TTS
+import gradio as gr
+
+# Проверка доступности CUDA
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Загрузка модели XTTS
+tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2", gpu=torch.cuda.is_available())
+
+# Функция для синтеза речи
+def synthesize_speech(text, speaker_wav):
+    output_path = "output.wav"
+    tts.tts_to_file(text=text, file_path=output_path, speaker_wav=speaker_wav, language="ru")
+    return output_path
+
+# Создание интерфейса Gradio
+iface = gr.Interface(
+    fn=synthesize_speech,
+    inputs=[
+        gr.Textbox(lines=2, placeholder="Enter text to synthesize..."),
+        gr.Audio(type="filepath")
+    ],
+    outputs=gr.Audio(type="filepath"),
+    title="XTTS Text-to-Speech",
+    description="Enter text and upload an audio file to synthesize speech using XTTS model."
+)
+
+# Запуск сервера Gradio
+if __name__ == "__main__":
+    iface.launch(server_name="127.0.0.1", server_port=7863)
